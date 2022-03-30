@@ -1,0 +1,9 @@
+{
+  "item.grid_indicator.grid_indicator": "网格检测器",
+
+  "text.grid_indicator.set_light_source": "设置光源：%s",
+  "text.grid_indicator.set_pattern_unit": "设置模板单位：%d",
+  "text.grid_indicator.set_origin_point": "设置原点：(%d, %d)",
+  "text.grid_indicator.not_a_grid_point": "这里不是网格点：(%d, %d)",
+  "text.grid_indicator.not_enough_light_source": "没有足够光源：%s"
+}

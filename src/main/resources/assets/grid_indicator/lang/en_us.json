@@ -1,0 +1,9 @@
+{
+  "item.grid_indicator.grid_indicator": "grid indicator",
+
+  "text.grid_indicator.set_light_source": "Set light source: %s",
+  "text.grid_indicator.set_pattern_unit": "Set pattern unit: %d",
+  "text.grid_indicator.set_origin_point": "Set origin point: (%d, %d)",
+  "text.grid_indicator.not_a_grid_point": "Not a grid point: (%d, %d)",
+  "text.grid_indicator.not_enough_light_source": "Not enough light source: %s"
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "grid-indicator",
+  "version": "${version}",
+  "name": "Grid Indicator",
+  "description": "A tool to indicate wheather current position is a grid point",
+  "authors": [
+    "TheRiverElder"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/grid-indicator/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "io.theriverelder.gridindicator.client.GridIndicatorClient"
+    ],
+    "main": [
+      "io.theriverelder.gridindicator.GridIndicator"
+    ]
+  },
+  "mixins": [
+    "grid-indicator.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.3",
+    "fabric": "*",
+    "minecraft": "1.18.1"
+  }
+}
