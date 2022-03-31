@@ -75,7 +75,9 @@ public class GridIndicatorItem extends Item {
         } else { // 若不潜行，则放置光源
             Item lightSourceItem = Registry.ITEM.get(info.getLightSource());
             if (lightSourceItem != Items.AIR) {
-                ItemStack lightSourceStack = InventoryUtils.getStackWithItem(player.getInventory(), lightSourceItem);
+                ItemStack lightSourceStack = player.isCreative()
+                        ? new ItemStack(lightSourceItem, lightSourceItem.getMaxCount())
+                        : InventoryUtils.getStackWithItem(player.getInventory(), lightSourceItem);
                 if (lightSourceStack == null) {
                     if (world.isClient()) {
                         player.sendMessage(new TranslatableText(NOT_ENOUGH_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_RED)), true);
@@ -89,10 +91,8 @@ public class GridIndicatorItem extends Item {
                             BlockState state = lightSourceBlock.getPlacementState(ipc);
                             if (canSetLightSourceBlock(world, posToPlace, state, player)) {
                                 if (world.setBlockState(posToPlace, state)) {
-                                    world.updateNeighbors(posToPlace, lightSourceBlock);
-                                    if (!player.isCreative()) {
-                                        lightSourceStack.setCount(lightSourceStack.getCount() - 1);
-                                    }
+//                                    world.updateNeighbors(posToPlace, lightSourceBlock);
+                                    lightSourceStack.setCount(lightSourceStack.getCount() - 1);
                                 }
                             }
                         }
@@ -120,7 +120,6 @@ public class GridIndicatorItem extends Item {
 
         if (world.isAir(pos)) return true;
         BlockState prevState = world.getBlockState(pos);
-        if (prevState.getBlock() instanceof FluidBlock) return true;
-        else return false;
+        return prevState.getBlock() instanceof FluidBlock;
     }
 }
