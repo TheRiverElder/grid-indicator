@@ -6,7 +6,8 @@ import net.minecraft.block.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.item.*;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Style;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
@@ -18,6 +19,9 @@ import net.minecraft.world.World;
 import static io.theriverelder.gridindicator.TranslationKeys.*;
 
 public class GridIndicatorItem extends Item {
+
+    public static final Style STYLE_YELLOW = Style.EMPTY.withColor(0xffff00).withUnderline(true);
+    public static final Style STYLE_RED = Style.EMPTY.withColor(0xff0000).withUnderline(true);
 
     public static final String KEY_INFO = "info";
     public static final String KEY_LIGHT_SOURCE = "light_source";
@@ -64,7 +68,7 @@ public class GridIndicatorItem extends Item {
 
             info.setLightSource(lightSource);
             if (world.isClient()) {
-                player.sendMessage(new TranslatableText(SET_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey())), true);
+                player.sendMessage(new TranslatableText(SET_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_YELLOW)), true);
             }
 
             info.setToStack(stack);
@@ -74,7 +78,7 @@ public class GridIndicatorItem extends Item {
                 ItemStack lightSourceStack = InventoryUtils.getStackWithItem(player.getInventory(), lightSourceItem);
                 if (lightSourceStack == null) {
                     if (world.isClient()) {
-                        player.sendMessage(new TranslatableText(NOT_ENOUGH_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey())), true);
+                        player.sendMessage(new TranslatableText(NOT_ENOUGH_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_RED)), true);
                     }
                 } else {
                     BlockPos posToPlace = pos.add(side.getVector());
