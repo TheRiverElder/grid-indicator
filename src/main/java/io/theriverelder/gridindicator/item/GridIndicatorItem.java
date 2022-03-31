@@ -85,7 +85,7 @@ public class GridIndicatorItem extends Item {
                         if (lightSourceBlock != Blocks.AIR) {
                             ItemPlacementContext ipc = new ItemPlacementContext(context);
                             BlockState state = lightSourceBlock.getPlacementState(ipc);
-                            if (world.canPlace(state, posToPlace, ShapeContext.of(player))) {
+                            if (canSetLightSourceBlock(world, posToPlace, state, player)) {
                                 if (world.setBlockState(posToPlace, state)) {
                                     if (!player.isCreative()) {
                                         lightSourceStack.setCount(lightSourceStack.getCount() - 1);
@@ -109,5 +109,13 @@ public class GridIndicatorItem extends Item {
     public static boolean isGridPoint(GridIndicatorInfo info, BlockPos pos) {
         int patternUnit = info.getPatternUnit();
         return pos.getX() % patternUnit == 0 && pos.getZ() % patternUnit == 0;
+    }
+
+    public static boolean canSetLightSourceBlock(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!world.canSetBlock(pos)) return false;
+        if (!world.canPlace(state, pos, ShapeContext.of(player))) return false;
+
+        if (world.isAir(pos) || world.getBlockState(pos).isSolidBlock(world, pos)) return true;
+        else return false;
     }
 }
