@@ -2,13 +2,11 @@ package io.theriverelder.gridindicator.item;
 
 import io.theriverelder.gridindicator.data.GridIndicatorInfo;
 import io.theriverelder.gridindicator.utils.InventoryUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShapeContext;
+import net.minecraft.block.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.item.*;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
@@ -87,6 +85,7 @@ public class GridIndicatorItem extends Item {
                             BlockState state = lightSourceBlock.getPlacementState(ipc);
                             if (canSetLightSourceBlock(world, posToPlace, state, player)) {
                                 if (world.setBlockState(posToPlace, state)) {
+                                    world.updateNeighbors(posToPlace, lightSourceBlock);
                                     if (!player.isCreative()) {
                                         lightSourceStack.setCount(lightSourceStack.getCount() - 1);
                                     }
@@ -115,7 +114,9 @@ public class GridIndicatorItem extends Item {
         if (!world.canSetBlock(pos)) return false;
         if (!world.canPlace(state, pos, ShapeContext.of(player))) return false;
 
-        if (world.isAir(pos) || world.getBlockState(pos).isSolidBlock(world, pos)) return true;
+        if (world.isAir(pos)) return true;
+        BlockState prevState = world.getBlockState(pos);
+        if (prevState.getBlock() instanceof FluidBlock) return true;
         else return false;
     }
 }
