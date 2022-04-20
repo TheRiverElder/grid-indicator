@@ -1,24 +1,37 @@
 package io.theriverelder.gridindicator.item;
 
+import io.theriverelder.gridindicator.GridIndicator;
 import io.theriverelder.gridindicator.data.GridIndicatorInfo;
+import io.theriverelder.gridindicator.screen.GridIndicatorScreenHandler;
 import io.theriverelder.gridindicator.utils.InventoryUtils;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.*;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Items;
 import net.minecraft.item.*;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Style;
-import net.minecraft.text.TextColor;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static io.theriverelder.gridindicator.TranslationKeys.*;
 
-public class GridIndicatorItem extends Item {
+public class GridIndicatorItem extends Item implements ExtendedScreenHandlerFactory {
 
     public static final Style STYLE_YELLOW = Style.EMPTY.withColor(0xffff00).withUnderline(true);
     public static final Style STYLE_RED = Style.EMPTY.withColor(0xff0000).withUnderline(true);
@@ -27,20 +40,23 @@ public class GridIndicatorItem extends Item {
     public static final String KEY_LIGHT_SOURCE = "light_source";
     public static final String KEY_PATTERN_UNIT = "pattern_unit";
     public static final String KEY_ORIGIN_POINT = "origin_point";
+    public static final String KEY_RANGE_BOTTOM = "range_bottom";
+    public static final String KEY_RANGE_TOP = "range_top";
 
     public GridIndicatorItem(Settings settings) {
         super(settings);
     }
 
-//    @Override
-//    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-//        ItemStack stack = user.getStackInHand(hand);
-//
-//        GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
-//
-//
-//        return super.use(world, user, hand);
-//    }
+    @Override
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (!user.isSneaking()) return super.use(world, user, hand);
+
+        ItemStack stack = user.getStackInHand(hand);
+
+        user.openHandledScreen(this);
+        return TypedActionResult.success(stack);
+    }
+
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
@@ -121,5 +137,31 @@ public class GridIndicatorItem extends Item {
         if (world.isAir(pos)) return true;
         BlockState prevState = world.getBlockState(pos);
         return prevState.getBlock() instanceof FluidBlock;
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
+        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_pattern", info.getPatternUnit()));
+        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_origin_point", info.getOriginPoint().getX(), info.getOriginPoint().getZ()));
+        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_range", info.getRangeBottom(), info.getRangeTop()));
+    }
+
+    private final Text guiName = new TranslatableText("item." + GridIndicator.ID + ".grid_indicator");
+
+    @Override
+    public Text getDisplayName() {
+        return guiName;
+    }
+
+    @Nullable
+    @Override
+    public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+        return new GridIndicatorScreenHandler(syncId, inv, player.getMainHandStack(), player.getInventory().selectedSlot);
+    }
+
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+        buf.writeItemStack(player.getMainHandStack()).writeInt(player.getInventory().selectedSlot);
     }
 }

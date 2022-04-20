@@ -5,5 +5,15 @@
   "text.grid_indicator.set_pattern_unit": "设置模板单位：%d",
   "text.grid_indicator.set_origin_point": "设置原点：(%d, %d)",
   "text.grid_indicator.not_a_grid_point": "这里不是网格点：(%d, %d)",
-  "text.grid_indicator.not_enough_light_source": "没有足够光源：%s"
+  "text.grid_indicator.not_enough_light_source": "没有足够光源：%s",
+
+  "desc.grid_indicator.grid_indicator_pattern": "模式：%dn+1",
+  "desc.grid_indicator.grid_indicator_origin_point": "参照原点：(%d, %d)",
+  "desc.grid_indicator.grid_indicator_range": "放置范围：[%d, %d]",
+
+  "gui.grid_indicator.button.save": "保存",
+  "gui.grid_indicator.text.pattern_unit": "单元边长",
+  "gui.grid_indicator.text.origin_point": "参照原点",
+  "gui.grid_indicator.text.range_bottom": "范围底部",
+  "gui.grid_indicator.text.range_top": "范围顶部"
 }

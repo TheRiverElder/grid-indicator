@@ -5,5 +5,15 @@
   "text.grid_indicator.set_pattern_unit": "Set pattern unit: %d",
   "text.grid_indicator.set_origin_point": "Set origin point: (%d, %d)",
   "text.grid_indicator.not_a_grid_point": "Not a grid point: (%d, %d)",
-  "text.grid_indicator.not_enough_light_source": "Not enough light source: %s"
+  "text.grid_indicator.not_enough_light_source": "Not enough light source: %s",
+
+  "desc.grid_indicator.grid_indicator_pattern": "Pattern: %dn+1",
+  "desc.grid_indicator.grid_indicator_origin_point": "Origin: (%d, %d)",
+  "desc.grid_indicator.grid_indicator_range": "Range: [%d, %d]",
+
+  "gui.grid_indicator.button.save": "Save",
+  "gui.grid_indicator.text.pattern_unit": "Pattern Unit",
+  "gui.grid_indicator.text.origin_point": "Origin Point",
+  "gui.grid_indicator.text.range_bottom": "Range Bottom",
+  "gui.grid_indicator.text.range_top": "Range Top"
 }

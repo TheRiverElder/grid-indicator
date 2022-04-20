@@ -1,5 +1,7 @@
 package io.theriverelder.gridindicator;
 
+import io.theriverelder.gridindicator.networking.Networking;
+import io.theriverelder.gridindicator.screen.Screens;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -14,5 +16,7 @@ public class GridIndicator implements ModInitializer {
     @Override
     public void onInitialize() {
         Registry.register(Registry.ITEM, new Identifier(ID, "grid_indicator"), GRID_INDICATOR);
+        Networking.registerServerReceivers();
+        Screens.registerScreenTypes();
     }
 }
