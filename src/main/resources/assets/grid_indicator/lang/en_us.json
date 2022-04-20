@@ -7,6 +7,7 @@
   "text.grid_indicator.not_a_grid_point": "Not a grid point: (%d, %d)",
   "text.grid_indicator.not_enough_light_source": "Not enough light source: %s",
 
+  "desc.grid_indicator.grid_indicator_light_source": "Light Source: %s",
   "desc.grid_indicator.grid_indicator_pattern": "Pattern: %dn+1",
   "desc.grid_indicator.grid_indicator_origin_point": "Origin: (%d, %d)",
   "desc.grid_indicator.grid_indicator_range": "Range: [%d, %d]",

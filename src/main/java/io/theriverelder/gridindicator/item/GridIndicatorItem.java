@@ -21,8 +21,10 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +51,13 @@ public class GridIndicatorItem extends Item implements ExtendedScreenHandlerFact
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (!user.isSneaking()) return super.use(world, user, hand);
 
         ItemStack stack = user.getStackInHand(hand);
+
+        if (!user.isSneaking()) {
+            putLightSource(stack, world, user);
+            return super.use(world, user, hand);
+        }
 
         user.openHandledScreen(this);
         return TypedActionResult.success(stack);
@@ -64,73 +70,86 @@ public class GridIndicatorItem extends Item implements ExtendedScreenHandlerFact
         World world = context.getWorld();
         BlockPos pos = context.getBlockPos();
         PlayerEntity player = context.getPlayer();
-        Direction side = context.getSide();
         if (player == null || world == null) return ActionResult.PASS;
 
         GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
-        GridIndicatorInfo prevInfo = info.copy();
-        info.setPatternUnit(stack.getCount());
-        if (info.getPatternUnit() != prevInfo.getPatternUnit()) {
-            if (world.isClient()) {
-                player.sendMessage(new TranslatableText(SET_PATTERN_UNIT, new TranslatableText(SET_PATTERN_UNIT, info.getPatternUnit())), false);
-            }
-        }
         info.setToStack(stack);
 
         if (player.isSneaking()) { // 若潜行，则选中光源
-            BlockState state = world.getBlockState(pos);
-            Item lightSourceItem = state.getBlock().asItem();
-            Identifier lightSource = Registry.ITEM.getId(lightSourceItem);
-
-            info.setLightSource(lightSource);
-            if (world.isClient()) {
-                player.sendMessage(new TranslatableText(SET_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_YELLOW)), true);
-            }
-
-            info.setToStack(stack);
+            setLightSource(stack, pos, world, player);
         } else { // 若不潜行，则放置光源
-            Item lightSourceItem = Registry.ITEM.get(info.getLightSource());
-            if (lightSourceItem != Items.AIR) {
-                ItemStack lightSourceStack = player.isCreative()
-                        ? new ItemStack(lightSourceItem, lightSourceItem.getMaxCount())
-                        : InventoryUtils.getStackWithItem(player.getInventory(), lightSourceItem);
-                if (lightSourceStack == null) {
-                    if (world.isClient()) {
-                        player.sendMessage(new TranslatableText(NOT_ENOUGH_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_RED)), true);
-                    }
-                } else {
-                    BlockPos posToPlace = pos.add(side.getVector());
-                    if (isGridPoint(info, posToPlace)) {
-                        Block lightSourceBlock = Registry.BLOCK.get(info.getLightSource());
-                        if (lightSourceBlock != Blocks.AIR) {
-                            ItemPlacementContext ipc = new ItemPlacementContext(context);
-                            BlockState state = lightSourceBlock.getPlacementState(ipc);
-                            if (canSetLightSourceBlock(world, posToPlace, state, player)) {
-                                if (world.setBlockState(posToPlace, state)) {
-//                                    world.updateNeighbors(posToPlace, lightSourceBlock);
-                                    lightSourceStack.setCount(lightSourceStack.getCount() - 1);
-                                }
-                            }
-                        }
-                    } else {
-                        if (world.isClient()) {
-                            player.sendMessage(new TranslatableText(NOT_A_GRID_POINT, posToPlace.getX(), posToPlace.getZ()), true);
-                        }
-                    }
-                }
-            }
+            putLightSource(stack, world, player);
         }
 
         super.useOnBlock(context);
         return ActionResult.SUCCESS;
     }
 
-    public static boolean isGridPoint(GridIndicatorInfo info, BlockPos pos) {
+    private void setLightSource(ItemStack stack, BlockPos pos, World world, PlayerEntity player) {
+        BlockState state = world.getBlockState(pos);
+        Item lightSourceItem = state.getBlock().asItem();
+        Identifier lightSource = Registry.ITEM.getId(lightSourceItem);
+
+        GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
+        info.setLightSource(lightSource);
+        if (world.isClient()) {
+            player.sendMessage(new TranslatableText(SET_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_YELLOW)), true);
+        }
+
+        info.setToStack(stack);
+    }
+
+    private void putLightSource(ItemStack stack, World world, PlayerEntity player) {
+        GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
+        BlockPos playerPos = player.getBlockPos();
+
         int patternUnit = info.getPatternUnit();
-        return pos.getX() % patternUnit == 0 && pos.getZ() % patternUnit == 0;
+
+        Item lightSourceItem = Registry.ITEM.get(info.getLightSource());
+        if (lightSourceItem != Items.AIR) {
+            ItemStack lightSourceStack = player.isCreative()
+                    ? new ItemStack(lightSourceItem, lightSourceItem.getMaxCount())
+                    : InventoryUtils.getStackWithItem(player.getInventory(), lightSourceItem);
+            if (lightSourceStack == null || lightSourceStack.isEmpty()) {
+                if (world.isClient()) {
+                    player.sendMessage(new TranslatableText(NOT_ENOUGH_LIGHT_SOURCE, new TranslatableText(lightSourceItem.getTranslationKey()).setStyle(STYLE_RED)), true);
+                }
+            } else {
+                Block lightSourceBlock = Registry.BLOCK.get(info.getLightSource());
+
+                BlockPos originPoint = info.getOriginPoint();
+                int x = Math.round((float) (playerPos.getX() - originPoint.getX()) / patternUnit) * patternUnit;
+                int z = Math.round((float) (playerPos.getZ() - originPoint.getZ()) / patternUnit) * patternUnit;
+
+                if (lightSourceBlock != Blocks.AIR) {
+
+                    int startY = Math.max(playerPos.getY() + info.getRangeBottom(), world.getBottomY());
+                    int endY = Math.min(world.getTopY() + 1, playerPos.getY() + info.getRangeTop());
+                    for (int y = startY; y < endY; y++) {
+                        BlockPos pos = new BlockPos(x, y, z);
+                        if (tryPlaceLightSource(lightSourceBlock, lightSourceStack, pos, world, player)) return;
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean tryPlaceLightSource(Block lightSourceBlock, ItemStack lightSourceStack, BlockPos pos, World world, PlayerEntity player) {
+        ItemPlacementContext context = new ItemPlacementContext(player, player.getActiveHand(), lightSourceStack, new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), Direction.UP, pos, false));
+        ItemPlacementContext ipc = new ItemPlacementContext(context);
+        BlockState state = lightSourceBlock.getPlacementState(ipc);
+
+        if (canSetLightSourceBlock(world, pos, state, player)) {
+            if (world.setBlockState(pos, state)) {
+                lightSourceStack.setCount(lightSourceStack.getCount() - 1);
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean canSetLightSourceBlock(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (state == null || world == null) return false;
         if (!world.canSetBlock(pos)) return false;
         if (!world.canPlace(state, pos, ShapeContext.of(player))) return false;
 
@@ -142,6 +161,7 @@ public class GridIndicatorItem extends Item implements ExtendedScreenHandlerFact
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
+        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_light_source").append(new TranslatableText("item." + info.getLightSource().getNamespace() + "." + info.getLightSource().getPath())));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_pattern", info.getPatternUnit()));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_origin_point", info.getOriginPoint().getX(), info.getOriginPoint().getZ()));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_range", info.getRangeBottom(), info.getRangeTop()));

@@ -7,6 +7,7 @@
   "text.grid_indicator.not_a_grid_point": "这里不是网格点：(%d, %d)",
   "text.grid_indicator.not_enough_light_source": "没有足够光源：%s",
 
+  "desc.grid_indicator.grid_indicator_light_source": "光源：%s",
   "desc.grid_indicator.grid_indicator_pattern": "模式：%dn+1",
   "desc.grid_indicator.grid_indicator_origin_point": "参照原点：(%d, %d)",
   "desc.grid_indicator.grid_indicator_range": "放置范围：[%d, %d]",
