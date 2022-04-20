@@ -161,7 +161,7 @@ public class GridIndicatorItem extends Item implements ExtendedScreenHandlerFact
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         GridIndicatorInfo info = GridIndicatorInfo.getFromStack(stack);
-        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_light_source").append(new TranslatableText("item." + info.getLightSource().getNamespace() + "." + info.getLightSource().getPath())));
+        tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_light_source").append(new TranslatableText("block." + info.getLightSource().getNamespace() + "." + info.getLightSource().getPath())));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_pattern", info.getPatternUnit()));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_origin_point", info.getOriginPoint().getX(), info.getOriginPoint().getZ()));
         tooltip.add(new TranslatableText("desc.grid_indicator.grid_indicator_range", info.getRangeBottom(), info.getRangeTop()));
